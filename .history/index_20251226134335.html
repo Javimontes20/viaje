@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Destinos</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(120deg, #e0e0e0, #f5f5f5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+            color: #333;
+        }
+
+        .container {
+            background: #f9f9f9;
+            border-radius: 20px;
+            padding: 30px 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #444;
+            font-weight: 600;
+            margin-bottom: 25px;
+            font-size: 1.6em;
+        }
+
+        .button-start,
+        .options button {
+            padding: 14px 0;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .button-start {
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+            color: #fff;
+            width: 80%;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .button-start:hover {
+            filter: brightness(1.1);
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .options button {
+            background: linear-gradient(90deg, #888, #555);
+            color: #fff;
+            font-size: 1.1em;
+            width: 100%;
+        }
+
+        .options button:hover {
+            background: linear-gradient(90deg, #555, #222);
+        }
+
+        .question {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #ddd;
+            border-radius: 20px;
+            margin: 20px 0;
+            height: 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            border-radius: 20px;
+            transition: width 0.3s;
+        }
+
+        #result {
+            font-size: 1.3em;
+            margin-top: 25px;
+            color: #444;
+            word-break: break-word;
+        }
+
+        @media(max-width: 400px) {
+            h1 {
+                font-size: 1.4em;
+            }
+
+            .question {
+                font-size: 1.1em;
+            }
+
+            .options button {
+                font-size: 1em;
+                padding: 12px 0;
+            }
+
+            .button-start {
+                font-size: 1em;
+                padding: 12px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>¿Cuál es tu destino ideal? 🌍</h1>
+        <div id="quiz"></div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // --- Datos del test ---
+        const test1 = [
+            { q: "¿Cómo llegas a este plan?", options: [{ text: "Cansado", type: "tranquilo" }, { text: "Normal", type: "equilibrado" }, { text: "Con energía", type: "intenso" }] },
+            { q: "¿Qué necesitas más hoy?", options: [{ text: "Desconectar", type: "tranquilo" }, { text: "Equilibrio", type: "equilibrado" }, { text: "Estímulos", type: "intenso" }] },
+            { q: "¿Cómo quieres que sea el ritmo del día?", options: [{ text: "Muy tranquilo", type: "tranquilo" }, { text: "Flexible", type: "equilibrado" }, { text: "Marcado", type: "intenso" }] },
+            { q: "¿Qué te apetece más ahora mismo?", options: [{ text: "Pasear sin rumbo", type: "tranquilo" }, { text: "Mezclar paseo y planes", type: "equilibrado" }, { text: "Hacer cosas todo el rato", type: "intenso" }] },
+            { q: "Al final del día, ¿cómo quieres sentirte?", options: [{ text: "Relajado", type: "tranquilo" }, { text: "Satisfecho", type: "equilibrado" }, { text: "Eufórico", type: "intenso" }] },
+            { q: "¿Cuánta importancia le das a la comodidad?", options: [{ text: "Mucha", type: "tranquilo" }, { text: "Media", type: "equilibrado" }, { text: "Poca", type: "intenso" }] },
+            { q: "¿Cómo te llevas con el cansancio?", options: [{ text: "Prefiero evitarlo", type: "tranquilo" }, { text: "Me da igual un poco", type: "equilibrado" }, { text: "No me importa acabar reventado", type: "intenso" }] },
+            { q: "¿Qué te atrae más hoy?", options: [{ text: "Ambiente y sensaciones", type: "tranquilo" }, { text: "Un poco de todo", type: "equilibrado" }, { text: "Acción y movimiento", type: "intenso" }] },
+            { q: "¿Qué tipo de plan te motiva más?", options: [{ text: "Espontáneo", type: "tranquilo" }, { text: "Semi-organizado", type: "equilibrado" }, { text: "Totalmente planificado", type: "intenso" }] },
+            { q: "¿Cómo quieres vivir el sitio?", options: [{ text: "Como alguien local", type: "tranquilo" }, { text: "Mezcla local/turista", type: "equilibrado" }, { text: "Como turista a tope", type: "intenso" }] },
+            { q: "Si surge algo tipo parque de atracciones…", options: [{ text: "Paso", type: "tranquilo" }, { text: "Depende", type: "equilibrado" }, { text: "Me apunto de cabeza", type: "intenso" }] },
+            { q: "¿Cuánto te importa moverte durante el día?", options: [{ text: "Poco", type: "tranquilo" }, { text: "Normal", type: "equilibrado" }, { text: "Mucho", type: "intenso" }] },
+            { q: "¿Qué valoras más hoy?", options: [{ text: "Tranquilidad", type: "tranquilo" }, { text: "Balance", type: "equilibrado" }, { text: "Intensidad", type: "intenso" }] },
+            { q: "¿Cómo prefieres que sea el día?", options: [{ text: "Sencillo y fluido", type: "tranquilo" }, { text: "Variado", type: "equilibrado" }, { text: "Intenso aunque sea caótico", type: "intenso" }] },
+            { q: "¿Qué buscas realmente con este viaje?", options: [{ text: "Descansar la mente", type: "tranquilo" }, { text: "Disfrutar el día", type: "equilibrado" }, { text: "Crear un recuerdo potente", type: "intenso" }] },
+        ];
+
+        const test2 = {
+            tranquilo: [
+                { q: "¿Prefieres playa o ciudad?", options: [{ text: "Playa", code: "T1" }, { text: "Ciudad", code: "L1" }, { text: "Ciudad cercana y cómoda", code: "B1" }] },
+                { q: "¿Quieres clima cálido o suave?", options: [{ text: "Cálido", code: "T1" }, { text: "Suave", code: "L1" }, { text: "Fresco", code: "B1" }] },
+            ],
+            equilibrado: [
+                { q: "¿Prefieres variedad o foco?", options: [{ text: "Variedad", code: "B2" }, { text: "Equilibrio tranquilo", code: "L2" }, { text: "Equilibrio intenso", code: "M1" }] },
+                { q: "¿Playa + ciudad o ciudad pura?", options: [{ text: "Playa + ciudad", code: "B2" }, { text: "Ciudad pura", code: "L2" }, { text: "Ciudad intensa", code: "M1" }] },
+            ],
+            intenso: [
+                { q: "¿Cultural o sensorial?", options: [{ text: "Cultural", code: "M2" }, { text: "Sensorial", code: "MA" }, { text: "Natural y activo", code: "T2" }, { text: "Ciudad constante", code: "L3" }] },
+                { q: "¿Ciudad o experiencia diferente?", options: [{ text: "Ciudad", code: "L3" }, { text: "Experiencia diferente", code: "MA" }, { text: "Intensidad natural", code: "T2" }, { text: "Diseño y ritmo", code: "M2" }] },
+            ]
+        };
+
+        // --- Variables ---
+        let currentTest = [];
+        let currentQuestion = 0;
+        let scores = { tranquilo: 0, equilibrado: 0, intenso: 0 };
+        let userDayType = '';
+        let codeCounts = {};
+        let started = false;
+
+        const quizDiv = document.getElementById("quiz");
+        const resultDiv = document.getElementById("result");
+        const progressBar = document.getElementById("progress-bar");
+
+        // --- Funciones ---
+        function startQuiz() {
+            started = true;
+            quizDiv.innerHTML = '';
+            currentTest = test1;
+            currentQuestion = 0;
+            scores = { tranquilo: 0, equilibrado: 0, intenso: 0 };
+            codeCounts = {};
+            showQuestion();
+        }
+
+        function showQuestion() {
+            quizDiv.innerHTML = '';
+            resultDiv.innerHTML = '';
+            const qObj = currentTest[currentQuestion];
+            const qDiv = document.createElement('div');
+            qDiv.className = 'question';
+            qDiv.innerHTML = `<p>${qObj.q}</p>`;
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'options';
+            qObj.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.textContent = opt.text;
+                btn.onclick = () => selectAnswer(opt);
+                optionsDiv.appendChild(btn);
+            });
+            qDiv.appendChild(optionsDiv);
+            quizDiv.appendChild(qDiv);
+
+            // actualizar progress
+            const total = currentTest.length;
+            progressBar.style.width = `${((currentQuestion) / total) * 100}%`;
+        }
+
+        function selectAnswer(opt) {
+            if (currentTest === test1) scores[opt.type]++;
+            else {
+                if (!codeCounts[opt.code]) codeCounts[opt.code] = 0;
+                codeCounts[opt.code]++;
+            }
+
+            currentQuestion++;
+            if (currentQuestion < currentTest.length) showQuestion();
+            else {
+                if (currentTest === test1 && started) {
+                    userDayType = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+                    currentTest = test2[userDayType];
+                    currentQuestion = 0;
+                    showQuestion();
+                } else if (currentTest !== test1 && started) {
+                    let maxCode = Object.keys(codeCounts).reduce((a, b) => codeCounts[a] > codeCounts[b] ? a : b);
+                    resultDiv.innerHTML = `<h2>Tu código clave es: <strong>${maxCode}</strong></h2>
+      <p>Comparte este código conmigo y te diré tu destino 😏</p>`;
+                    quizDiv.innerHTML = '';
+                    progressBar.style.width = `100%`;
+                }
+            }
+        }
+
+        // --- Portada ---
+        quizDiv.innerHTML = `<button class="button-start" onclick="startQuiz()">Iniciar Test 🚀</button>`;
+        progressBar.style.width = `0%`;
+    </script>
+</body>
+
+</html>

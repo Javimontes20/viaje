@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Escapadas Rápidas</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8eef3 100%);
+            z-index: 0;
+        }
+
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            filter: brightness(0.5) blur(5px) grayscale(40%);
+            opacity: 0.3;
+            transition: all 0.8s ease;
+        }
+
+        .container {
+            background: #ffffff;
+            color: #1a1a1a;
+            border-radius: 16px;
+            padding: 60px 50px;
+            width: 90%;
+            max-width: 580px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 10px 40px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 2.2em;
+            color: #1a1a1a;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 0.95em;
+            color: #6b7280;
+            margin-bottom: 40px;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+        }
+
+        .button-start,
+        .options button {
+            padding: 16px 0;
+            font-size: 1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .button-start {
+            background: #1a1a1a;
+            color: #ffffff;
+            width: 60%;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .button-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+            background: #2d2d2d;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .options button {
+            background: #f8f9fa;
+            color: #1a1a1a;
+            border: 1.5px solid #e5e7eb;
+            width: 100%;
+            transform: scale(1);
+            text-align: left;
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 500;
+        }
+
+        .options button:hover {
+            background: #ffffff;
+            border-color: #1a1a1a;
+            transform: translateX(4px);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .options button .emoji {
+            font-size: 1.3em;
+            margin-left: 10px;
+            transition: transform 0.2s;
+            opacity: 0.8;
+        }
+
+        .options button:hover .emoji {
+            transform: scale(1.15);
+            opacity: 1;
+        }
+
+        .question {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            line-height: 1.4em;
+            font-weight: 600;
+            color: #1a1a1a;
+            text-align: center;
+            letter-spacing: -0.01em;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: #f3f4f6;
+            color: #6b7280;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: 500;
+            margin-bottom: 20px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #f3f4f6;
+            border-radius: 8px;
+            margin: 35px 0 25px 0;
+            height: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #1a1a1a;
+            border-radius: 8px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #result {
+            font-size: 1.1em;
+            margin-top: 30px;
+            color: #1a1a1a;
+            word-break: break-word;
+            line-height: 1.6em;
+            animation: resultFadeIn 0.6s ease;
+        }
+
+        #result h2 {
+            font-size: 1.6em;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        #result strong {
+            display: inline-block;
+            background: #1a1a1a;
+            color: white;
+            padding: 14px 36px;
+            border-radius: 8px;
+            font-size: 1.8em;
+            margin: 20px 0;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        #result p {
+            color: #6b7280;
+            font-size: 1em;
+        }
+
+        @keyframes resultFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pause-screen {
+            font-size: 1.4em;
+            color: #1a1a1a;
+            font-weight: 600;
+            animation: fadeInOut 1.5s ease-in-out infinite;
+            margin-top: 20px;
+        }
+
+        @keyframes fadeInOut {
+
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .icon-decoration {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            display: inline-block;
+            opacity: 0.9;
+        }
+
+        @media(max-width:600px) {
+            .container {
+                padding: 50px 35px;
+                border-radius: 12px;
+            }
+
+            h1 {
+                font-size: 1.9em;
+            }
+
+            .question {
+                font-size: 1.2em;
+            }
+
+            .options button,
+            .button-start {
+                font-size: 0.95em;
+                padding: 16px 20px;
+            }
+
+            .button-start {
+                width: 75%;
+            }
+        }
+
+        @media(max-width:400px) {
+            h1 {
+                font-size: 1.6em;
+            }
+
+            .question {
+                font-size: 1.1em;
+            }
+
+            .options button,
+            .button-start {
+                font-size: 0.9em;
+                padding: 14px 18px;
+            }
+
+            .container {
+                padding: 40px 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <video autoplay muted loop id="bg-video" playsinline>
+        <source src="grok-video-7d53e2bd-7b95-4383-89e8-5b1caa8f1718.mp4" type="video/mp4">
+    </video>
+
+    <div class="container" id="container">
+        <div class="icon-decoration">✈️</div>
+        <h1>¿A dónde debería ir este día?</h1>
+        <p class="subtitle">Descubre tu destino ideal en un solo día</p>
+        <div id="quiz"></div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // =========================
+        // Test 1 - 10 preguntas
+        // =========================
+        const test1 = [
+            { q: "¿Qué plan te apetece?", options: [{ text: "Relax y playa", emoji: "🏖️", type: "tranquilo" }, { text: "Cultura y paseos urbanos", emoji: "🏙️", type: "equilibrado" }, { text: "Ritmo intenso y actividades", emoji: "⚡", type: "intenso" }] },
+            { q: "Clima ideal", options: [{ text: "Sol y calor", emoji: "☀️", type: "tranquilo" }, { text: "Ni frío ni calor", emoji: "🌤️", type: "equilibrado" }, { text: "Fresco o variable", emoji: "🌬️", type: "intenso" }] },
+            { q: "Comida favorita del día", options: [{ text: "Tapas y helados", emoji: "🍦", type: "tranquilo" }, { text: "Street food y cafés", emoji: "☕", type: "equilibrado" }, { text: "Probar todo local", emoji: "😋", type: "intenso" }, { text: "Indiferente", emoji: "🤷", type: "equilibrado" }] },
+            { q: "Fotos del día", options: [{ text: "Selfies tranquilas", emoji: "😎", type: "tranquilo" }, { text: "Mix de fotos", emoji: "📸", type: "equilibrado" }, { text: "Fotos épicas", emoji: "🤩", type: "intenso" }] },
+            { q: "Tarde ideal", options: [{ text: "Paseo suave", emoji: "🚶", type: "tranquilo" }, { text: "Explorar ciudad", emoji: "🏰", type: "equilibrado" }, { text: "Tours intensos", emoji: "🎢", type: "intenso" }] },
+            { q: "Nivel de caminata", options: [{ text: "Poco", emoji: "🏖️", type: "tranquilo" }, { text: "Moderado", emoji: "🚆", type: "equilibrado" }, { text: "Mucho", emoji: "✈️", type: "intenso" }] },
+            { q: "Tipo de paisaje", options: [{ text: "Mar y calma", emoji: "🌊", type: "tranquilo" }, { text: "Ciudad y cultura", emoji: "🏙️", type: "equilibrado" }, { text: "Montaña y aventura", emoji: "🏔️", type: "intenso" }] },
+            { q: "Ritmo del día", options: [{ text: "Relax total", emoji: "😌", type: "tranquilo" }, { text: "Equilibrado", emoji: "😎", type: "equilibrado" }, { text: "A tope", emoji: "🤩", type: "intenso" }] },
+            { q: "Plan gastronómico", options: [{ text: "Brunch relajado", emoji: "🥐", type: "tranquilo" }, { text: "Comida local urbana", emoji: "🍲", type: "equilibrado" }, { text: "Degustación intensa", emoji: "🍱", type: "intenso" }] },
+            { q: "Recuerdo del día", options: [{ text: "Fotos bonitas y calma", emoji: "📸", type: "tranquilo" }, { text: "Fotos + souvenirs", emoji: "🎁", type: "equilibrado" }, { text: "Fotos épicas y adrenalina", emoji: "💥", type: "intenso" }] }
+        ];
+
+        // =========================
+        // Test 2 - Destinos con códigos
+        // =========================
+        const test2 = {
+            tranquilo: [
+                { q: "Para empezar el día, ¿qué te pega más?", options: [{ text: "Paseo marino", emoji: "🌊", code: "C1" }, { text: "Vistas montaña", emoji: "🏞️", code: "C2" }, { text: "Playa mediterránea", emoji: "🏖️", code: "C3" }] },
+                { q: "A mitad del día tú eres más de…", options: [{ text: "Sentarse y disfrutar", emoji: "😌", code: "C1" }, { text: "Paseo tranquilo", emoji: "📸", code: "C3" }, { text: "Ruta calmada", emoji: "🚶", code: "C2" }] },
+                { q: "Para terminar el día…", options: [{ text: "Atardecer relajado", emoji: "🌅", code: "C3" }, { text: "Cena con vistas", emoji: "🍷", code: "C2" }, { text: "Tomar algo relajado", emoji: "☕", code: "C1" }] }
+            ],
+            equilibrado: [
+                { q: "Nada más llegar, lo primero es…", options: [{ text: "Pasear ciudad", emoji: "🏙️", code: "C4" }, { text: "Miradores", emoji: "🌉", code: "C5" }, { text: "Explorar plazas", emoji: "📸", code: "C6" }] },
+                { q: "A mitad del día te apetece…", options: [{ text: "Comida típica", emoji: "☕", code: "C5" }, { text: "Monumentos icónicos", emoji: "🏛️", code: "C4" }, { text: "Museos/plazas tranquilas", emoji: "🏰", code: "C6" }] },
+                { q: "Para cerrar el día…", options: [{ text: "Atardecer bonito", emoji: "🌇", code: "C4" }, { text: "Paseo nocturno", emoji: "✨", code: "C6" }, { text: "Cena local", emoji: "🍷", code: "C5" }] }
+            ],
+            intenso: [
+                { q: "Este viaje se vive a…", options: [{ text: "Ritmo alto", emoji: "⚡", code: "C7" }, { text: "Explorar mercados", emoji: "🔥", code: "C8" }, { text: "Turismo exprés", emoji: "🏃", code: "C9" }] },
+                { q: "Lo que más te motiva del día es…", options: [{ text: "Ver mil cosas", emoji: "🏃‍♂️", code: "C7" }, { text: "Perderse en lo distinto", emoji: "🧭", code: "C8" }, { text: "Visitar puntos clave", emoji: "⚡", code: "C9" }] },
+                { q: "Cuando acaba el día quieres sentir que…", options: [{ text: "Aprovechaste cada minuto", emoji: "⏱️", code: "C7" }, { text: "Viviste intenso y diferente", emoji: "💥", code: "C8" }, { text: "Disfrutaste al máximo", emoji: "🏙️", code: "C9" }] }
+            ]
+        };
+
+        let currentTest = [], currentQuestion = 0, scores = { tranquilo: 0, equilibrado: 0, intenso: 0 }, codeCounts = {}, userDayType = '', started = false;
+        const quizDiv = document.getElementById("quiz"), resultDiv = document.getElementById("result"), progressBar = document.getElementById("progress-bar"), container = document.getElementById("container"), video = document.getElementById("bg-video");
+
+        function showStartScreen() {
+            quizDiv.innerHTML = `<button class="button-start" onclick="startQuiz()">Iniciar Test</button>`;
+            progressBar.style.width = "0%";
+        }
+
+        function startQuiz() {
+            video.src = "avion.mp4"; video.play();
+            container.style.opacity = 1; started = true;
+            currentTest = test1; currentQuestion = 0; scores = { tranquilo: 0, equilibrado: 0, intenso: 0 }; codeCounts = {};
+            showQuestion();
+        }
+
+        function showQuestion() {
+            quizDiv.innerHTML = ''; resultDiv.innerHTML = '';
+            const qObj = currentTest[currentQuestion];
+            const qDiv = document.createElement('div');
+            qDiv.innerHTML = `<div class="question-number">Pregunta ${currentQuestion + 1} de ${currentTest.length}</div><div class="question">${qObj.q}</div>`;
+            const optionsDiv = document.createElement('div'); optionsDiv.className = 'options';
+            qObj.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.innerHTML = `<span>${opt.text}</span><span class="emoji">${opt.emoji || ''}</span>`;
+                btn.onclick = () => {
+                    btn.style.transform = 'scale(0.98)';
+                    setTimeout(() => btn.style.transform = 'scale(1)', 150);
+                    setTimeout(() => selectAnswer(opt), 300);
+                };
+                optionsDiv.appendChild(btn);
+            });
+            qDiv.appendChild(optionsDiv); quizDiv.appendChild(qDiv);
+            qDiv.style.opacity = 0; setTimeout(() => qDiv.style.opacity = 1, 50);
+            progressBar.style.width = `${(currentQuestion / currentTest.length) * 100}%`;
+        }
+
+        function selectAnswer(opt) {
+            if (currentTest === test1 && opt.type) scores[opt.type]++;
+            else if (opt.code) { if (!codeCounts[opt.code]) codeCounts[opt.code] = 0; codeCounts[opt.code]++; }
+            currentQuestion++;
+            if (currentQuestion < currentTest.length) showQuestion();
+            else {
+                if (currentTest === test1) {
+                    quizDiv.innerHTML = '<div class="pause-screen">Preparando segunda parte...</div>';
+                    progressBar.style.width = "0%";
+                    setTimeout(() => {
+                        userDayType = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+                        currentTest = test2[userDayType]; currentQuestion = 0;
+                        showQuestion();
+                    }, 2000);
+                } else {
+                    let maxCode = Object.keys(codeCounts).reduce((a, b) => codeCounts[a] > codeCounts[b] ? a : b);
+                    resultDiv.innerHTML = `<h2>Tu código secreto</h2><strong>${maxCode}</strong><p>Guárdalo y pregúntame mañana para conocer tu destino ✈️</p>`;
+                    quizDiv.innerHTML = ''; progressBar.style.width = "100%";
+                }
+            }
+        }
+
+        container.style.opacity = 0;
+        setTimeout(() => { container.style.opacity = 1; showStartScreen(); }, 1000);
+    </script>
+</body>
+
+</html>

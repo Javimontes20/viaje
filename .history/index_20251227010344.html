@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Escapadas Rápidas</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Montserrat:wght@400;600&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            overflow-x: hidden;
+        }
+
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            filter: brightness(0.4);
+            transition: all 0.5s ease;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 25px;
+            padding: 30px 25px;
+            width: 90%;
+            max-width: 520px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+            opacity: 0;
+            transition: opacity 1s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: 'Pacifico', cursive;
+            font-weight: 400;
+            margin-bottom: 25px;
+            font-size: 2em;
+            color: #ff6f61;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .button-start,
+        .options button {
+            padding: 14px 0;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .button-start {
+            background: linear-gradient(90deg, #ff6f61, #ffb347);
+            color: #fff;
+            width: 80%;
+            margin: 0 auto;
+            display: block;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .button-start:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 15px;
+        }
+
+        .options button {
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+            color: #fff;
+            width: 100%;
+            transform: scale(1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .options button:hover {
+            transform: scale(1.08);
+            background: linear-gradient(90deg, #2575fc, #6a11cb);
+        }
+
+        .question {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            transition: opacity 0.3s;
+            line-height: 1.4em;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #ddd;
+            border-radius: 20px;
+            margin: 20px 0;
+            height: 18px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #ff6f61, #ffb347);
+            border-radius: 20px;
+            transition: width 0.4s;
+        }
+
+        #result {
+            font-size: 1.3em;
+            margin-top: 25px;
+            color: #333;
+            word-break: break-word;
+            line-height: 1.5em;
+        }
+
+        .pause-screen {
+            font-size: 1.5em;
+            color: #6a11cb;
+            animation: bounce 1s infinite alternate;
+            margin-top: 20px;
+        }
+
+        .pista-img {
+            margin-top: 15px;
+            width: 80%;
+            max-width: 300px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(0px);
+            }
+
+            100% {
+                transform: translateY(-12px);
+            }
+        }
+
+        @media(max-width:400px) {
+            h1 {
+                font-size: 1.6em;
+            }
+
+            .question {
+                font-size: 1.1em;
+            }
+
+            .options button,
+            .button-start {
+                font-size: 1em;
+                padding: 12px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <video autoplay muted loop id="bg-video" playsinline>
+        <source src="grok-video-7d53e2bd-7b95-4383-89e8-5b1caa8f1718.mp4" type="video/mp4">
+    </video>
+
+    <div class="container" id="container">
+        <h1>¿A dónde debería ir hoy? 🌍</h1>
+        <div id="quiz"></div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+       const test1 = [
+            {
+                q: "¿Qué plan te apetece hoy?",
+                options: [
+                    { text: "Relax total cerca de la playa 🏖️", type: "tranquilo" },
+                    { text: "Darle una vuelta por la ciudad 🌆", type: "equilibrado" },
+                    { text: "Cosas random y a lo loco 🎢", type: "intenso" }
+                ]
+            },
+            {
+                q: "El clima perfecto sería…",
+                options: [
+                    { text: "Solazo y calorcito ☀️", type: "tranquilo" },
+                    { text: "Temperatura guay, ni frío ni calor 🌤️", type: "equilibrado" },
+                    { text: "Más fresquito que calor 🌬️", type: "intenso" }
+                ]
+            },
+            {
+                q: "¿Qué te apetece comer?",
+                options: [
+                    { text: "Tapitas y heladito 🍦", type: "tranquilo" },
+                    { text: "Street food y cafés ☕", type: "equilibrado" },
+                    { text: "Probar todo típico 😋", type: "intenso" },
+                    { text: "Ni idea… soy demasiado exquisito/a 🤷", type: "equilibrado" }
+                ]
+            },
+            {
+                q: "Fotos del día, ¿cómo lo llevamos?",
+                options: [
+                    { text: "Selfies tranqui 😎", type: "tranquilo" },
+                    { text: "Mix de fotos 📸", type: "equilibrado" },
+                    { text: "Fotos épicas y locas 🤩", type: "intenso" }
+                ]
+            },
+            {
+                q: "Tarde… ¿qué toca hacer?",
+                options: [
+                    { text: "Un paseíto relajao 🚶", type: "tranquilo" },
+                    { text: "Explorar un poco la ciudad 🏰", type: "equilibrado" },
+                    { text: "Tours intensos y plan tope 🎢", type: "intenso" }
+                ]
+            },
+            {
+                q: "¿Cuánto te apetece andar hoy?",
+                options: [
+                    { text: "Poco, tranqui 🏖️", type: "tranquilo" },
+                    { text: "Un poquito más, sin pasarse 🚆", type: "equilibrado" },
+                    { text: "Andar todo el día sin problema ✈️", type: "intenso" }
+                ]
+            }
+        ];
+
+      const test2 = {
+            tranquilo: [
+                {
+                    q: "Para empezar el día, ¿qué te pega más?",
+                    options: [
+                        { text: "Paseíto con vistas al agua y cero prisas 🌊", code: "C1", img: "tenerife.png" },
+                        { text: "Paisaje bonito, montaña y calma total 🌄", code: "C2", img: "como.png" }
+                    ]
+                },
+                {
+                    q: "A mitad del día tú eres más de…",
+                    options: [
+                        { text: "Sentarse a disfrutar del sitio sin hacer mucho 😌", code: "C3", img: "tenerife.png" },
+                        { text: "Dar una vuelta tranquila y empaparte del lugar 🚶‍♂️", code: "C4", img: "como.png" }
+                    ]
+                },
+                {
+                    q: "La tarde ideal sería…",
+                    options: [
+                        { text: "Relax máximo, fotos bonitas y poco ruido 📸", code: "C5", img: "tenerife.png" },
+                        { text: "Paseo con vistas que se te quedan grabadas 🫶", code: "C6", img: "como.png" }
+                    ]
+                }
+            ],
+
+            equilibrado: [
+                {
+                    q: "Nada más llegar, lo primero es…",
+                    options: [
+                        { text: "Callejear sin rumbo y ver qué sale 🏙️", code: "E1", img: "pistas/barcelona.jpg" },
+                        { text: "Miradores y barrios con encanto 🌉", code: "E2", img: "pistas/lisboa.jpg" }
+                    ]
+                },
+                {
+                    q: "A mitad del día te mola más…",
+                    options: [
+                        { text: "Seguir pateando ciudad pero sin ir a fuego 👣", code: "E3", img: "pistas/barcelona2.jpg" },
+                        { text: "Parar, mirar alrededor y seguir tranquilo ☕", code: "E4", img: "pistas/lisboa2.jpg" }
+                    ]
+                },
+                {
+                    q: "Para rematar el día eliges…",
+                    options: [
+                        { text: "Monumentos + paseíto final 🏛️", code: "E5", img: "pistas/barcelona3.jpg" },
+                        { text: "Atardecer bonito y ambiente calmado 🌅", code: "E6", img: "pistas/lisboa3.jpg" }
+                    ]
+                }
+            ],
+
+            intenso: [
+                {
+                    q: "Este viaje se vive a…",
+                    options: [
+                        { text: "Ritmo alto, muchas cosas en poco tiempo ⚡", code: "I1", img: "pistas/londres.jpg" },
+                        { text: "Estimulación constante, todo distinto 🔥", code: "I2", img: "pistas/marrakech.jpg" }
+                    ]
+                },
+                {
+                    q: "Lo que más te motiva del día es…",
+                    options: [
+                        { text: "Ver mil cosas diferentes en pocas horas 🏃‍♂️", code: "I3", img: "pistas/bruselas.jpg" },
+                        { text: "Perderte en un sitio totalmente distinto 🧭", code: "I4", img: "pistas/marrakech2.jpg" }
+                    ]
+                },
+                {
+                    q: "Cuando acaba el día quieres sentir que…",
+                    options: [
+                        { text: "Has aprovechado cada minuto ⏱️", code: "I5", img: "pistas/londres2.jpg" },
+                        { text: "Has vivido algo intenso y diferente 💥", code: "I6", img: "pistas/bruselas2.jpg" }
+                    ]
+                }
+            ]
+        };
+
+            let currentTest=[], currentQuestion=0, scores={ tranquilo: 0, equilibrado: 0, intenso: 0 }, codeCounts={}, userDayType='', started=false;
+            const quizDiv = document.getElementById("quiz"), resultDiv=document.getElementById("result"), progressBar=document.getElementById("progress-bar"), container=document.getElementById("container"), video=document.getElementById("bg-video");
+
+            function showStartScreen(){
+                quizDiv.innerHTML = `<button class="button-start" onclick="startQuiz()">Iniciar Test 🚀</button>`;
+        progressBar.style.width = "0%";
+}
+
+        function startQuiz() {
+            video.src = "avion.mp4"; video.play();
+            container.style.opacity = 1; started = true;
+            currentTest = test1; currentQuestion = 0; scores = { tranquilo: 0, equilibrado: 0, intenso: 0 }; codeCounts = {};
+            showQuestion();
+        }
+
+        function showQuestion() {
+            quizDiv.innerHTML = ''; resultDiv.innerHTML = '';
+            const qObj = currentTest[currentQuestion];
+            const qDiv = document.createElement('div'); qDiv.className = 'question'; qDiv.innerHTML = `<p>${qObj.q}</p>`;
+            const optionsDiv = document.createElement('div'); optionsDiv.className = 'options';
+
+            qObj.options.forEach(opt => {
+                const btn = document.createElement('button'); btn.textContent = opt.text;
+                btn.onclick = () => {
+                    btn.style.transform = 'scale(1.15)';
+                    setTimeout(() => btn.style.transform = 'scale(1)', 200);
+
+                    if (opt.type) {
+                        let emoji = ''; if (opt.type === 'tranquilo') emoji = '😌'; else if (opt.type === 'equilibrado') emoji = '😎'; else if (opt.type === 'intenso') emoji = '🤩';
+                        const emojSpan = document.createElement('span'); emojSpan.textContent = emoji; emojSpan.style.fontSize = '1.5em'; emojSpan.style.marginLeft = '8px';
+                        btn.appendChild(emojSpan);
+                    }
+
+                    setTimeout(() => selectAnswer(opt), 400);
+                };
+                optionsDiv.appendChild(btn);
+            });
+
+            qDiv.appendChild(optionsDiv); quizDiv.appendChild(qDiv);
+            qDiv.style.opacity = 0; setTimeout(() => qDiv.style.opacity = 1, 50);
+            progressBar.style.width = `${(currentQuestion / currentTest.length) * 100}%`;
+        }
+
+        function selectAnswer(opt) {
+            if (currentTest === test1 && opt.type) scores[opt.type]++;
+            else if (opt.code) { if (!codeCounts[opt.code]) codeCounts[opt.code] = 0; codeCounts[opt.code]++; }
+
+            currentQuestion++;
+            if (currentQuestion < currentTest.length) showQuestion();
+            else {
+                if (currentTest === test1) {
+                    quizDiv.innerHTML = '<div class="pause-screen">¡Preparado para la segunda ronda? 😏</div>';
+                    progressBar.style.width = "0%";
+                    setTimeout(() => {
+                        userDayType = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+                        currentTest = test2[userDayType]; currentQuestion = 0;
+                        showQuestion();
+                    }, 2500);
+                } else {
+                    let maxCode = Object.keys(codeCounts).reduce((a, b) => codeCounts[a] > codeCounts[b] ? a : b);
+                    resultDiv.innerHTML = `<h2>Tu código secreto es: <strong>${maxCode}</strong></h2>
+            <p>No sabrás tu destino hasta que lleguemos al aeropuerto ✈️🎉</p>`;
+                    const codeObj = currentTest.find(q => q.options.some(o => o.code === maxCode));
+                    if (codeObj) {
+                        const imgObj = codeObj.options.find(o => o.code === maxCode);
+                        if (imgObj) {
+                            const img = document.createElement('img'); img.src = imgObj.img; img.className = 'pista-img';
+                            resultDiv.appendChild(img);
+                        }
+                    }
+                    quizDiv.innerHTML = ''; progressBar.style.width = "100%";
+                }
+            }
+        }
+
+        container.style.opacity = 0;
+        setTimeout(() => { container.style.opacity = 1; showStartScreen(); }, 6000);
+    </script>
+</body>
+
+</html>
