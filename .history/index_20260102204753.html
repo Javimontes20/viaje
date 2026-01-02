@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destino Secreto</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: Inter, sans-serif;
+            background: #f5f6f7;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: #fff;
+            width: 90%;
+            max-width: 560px;
+            padding: 50px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .08);
+            text-align: center;
+        }
+
+        h1 {
+            font-weight: 600;
+            margin-bottom: 10px
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 40px
+        }
+
+        .question-number {
+            font-size: .75em;
+            color: #6b7280;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .question {
+            font-size: 1.3em;
+            font-weight: 500;
+            margin-bottom: 25px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .options button {
+            padding: 16px 20px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            cursor: pointer;
+            font-size: 1em;
+            text-align: left;
+            transition: .2s;
+        }
+
+        .options button:hover {
+            background: #fff;
+            border-color: #111;
+        }
+
+        .progress {
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 6px;
+            margin: 35px 0;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            width: 0%;
+            background: #111;
+            transition: .4s;
+        }
+
+        .start-btn {
+            padding: 16px 40px;
+            background: #111;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .result-code {
+            font-size: 2em;
+            font-weight: 600;
+            margin: 20px 0;
+            letter-spacing: .1em;
+        }
+
+        .result-text {
+            color: #6b7280;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>¿A dónde irías?</h1>
+        <p class="subtitle">Descúbrelo sin saberlo</p>
+
+        <div id="quiz"></div>
+
+        <div class="progress">
+            <div class="bar" id="bar"></div>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const quizDiv = document.getElementById("quiz");
+        const resultDiv = document.getElementById("result");
+        const bar = document.getElementById("bar");
+
+        let step = 0;
+        let profileScore = { tranquilo: 0, equilibrado: 0, intenso: 0 };
+        let destinationScore = {
+            C1: 0, C2: 0, C3: 0, C4: 0, C5: 0, C6: 0, C7: 0, C8: 0
+        };
+
+        const test1 = [
+                ["¿Qué ritmo te apetece llevar durante el día?",
+                    ["Tranquilo, sin prisas", "Equilibrado, bien aprovechado", "Intenso, a tope"]
+                ],
+                ["¿Cuánto te apetece caminar en total?",
+                    ["Lo justo", "Bastante pero sin sufrir", "Todo el día sin problema"]
+                ],
+                ["Cuando viajas, prefieres…",
+                    ["Improvisar", "Tener una idea clara", "Llevarlo todo planificado"]
+                ],
+                ["¿Qué te motiva más al elegir un destino?",
+                    ["Desconectar", "Descubrir sitios nuevos", "Vivir algo diferente"]
+                ],
+                ["¿Cómo te gusta moverte por la ciudad?",
+                    ["Paseos cortos", "Mezcla de transporte y caminar", "Andando todo"]
+                ],
+                ["¿Qué importancia le das a la estética del sitio?",
+                    ["Baja", "Media", "Alta (quiero sitios bonitos)"]
+                ],
+                ["Cuando acaba el día quieres sentir que…",
+                    ["Has descansado", "Lo has aprovechado bien", "Has vivido mil cosas"]
+                ],
+                ["¿Cómo sueles viajar?",
+                    ["Relajado", "Curioso", "Inquieto"]
+                ],
+                ["¿Te agobia un sitio muy turístico?",
+                    ["Sí", "Depende", "No"]
+                ],
+                ["Este viaje ideal sería para…",
+                    ["Desconectar mentalmente", "Cambiar de aires", "Salir de la rutina"]
+                ]
+            ];
+
+        
+
+        const test2 = [
+            {
+                q: "¿Qué clima prefieres?",
+                a: [
+                    ["Frío", ["C1", "C2"]],
+                    ["Templado", ["C3", "C5", "C6"]],
+                    ["Calor", ["C4", "C7", "C8"]]
+                ]
+            },
+            {
+                q: "¿Qué entorno te atrae más?",
+                a: [
+                    ["Ciudad", ["C1", "C2", "C3", "C6"]],
+                    ["Naturaleza", ["C5", "C7", "C8"]],
+                    ["Exótico", ["C4"]]
+                ]
+            },
+            {
+                q: "¿Qué plan te motiva?",
+                a: [
+                    ["Cultural", ["C1", "C2", "C5"]],
+                    ["Equilibrado", ["C3", "C6"]],
+                    ["Aventura", ["C4", "C7", "C8"]]
+                ]
+            },
+            {
+                q: "¿Cómo pasas la tarde?",
+                a: [
+                    ["Paseando", ["C3", "C6"]],
+                    ["Relax", ["C5", "C8"]],
+                    ["Actividad", ["C2", "C4", "C7"]]
+                ]
+            },
+            {
+                q: "¿Final del día?",
+                a: [
+                    ["Tranqui", ["C5", "C8"]],
+                    ["Urbano", ["C2", "C6"]],
+                    ["Diferente", ["C4", "C7"]]
+                ]
+            }
+        ];
+
+        function start() {
+            quizDiv.innerHTML = `<button class="start-btn" onclick="next()">Empezar</button>`;
+        }
+        start();
+
+        function next(answerIndex) {
+            if (step < 10 && answerIndex !== undefined) {
+                if (answerIndex === 0) profileScore.tranquilo++;
+                if (answerIndex === 1) profileScore.equilibrado++;
+                if (answerIndex === 2) profileScore.intenso++;
+            }
+
+            if (step < 10) {
+                const q = test1[step];
+                quizDiv.innerHTML = `
+      <div class="question-number">Pregunta ${step + 1}/15</div>
+      <div class="question">${q[0]}</div>
+      <div class="options">
+        ${q[1].map((o, i) => `<button onclick="next(${i})">${o}</button>`).join("")}
+      </div>`;
+            }
+            else if (step < 15) {
+                const q = test2[step - 10];
+                quizDiv.innerHTML = `
+      <div class="question-number">Pregunta ${step + 1}/15</div>
+      <div class="question">${q.q}</div>
+      <div class="options">
+        ${q.a.map(opt => `<button onclick='addDest(${JSON.stringify(opt[1])})'>${opt[0]}</button>`).join("")}
+      </div>`;
+            }
+            step++;
+            bar.style.width = `${(step / 15) * 100}%`;
+        }
+
+        function addDest(codes) {
+            codes.forEach(c => destinationScore[c]++);
+            next();
+        }
+
+        function showResult() {
+            const finalCode = Object.keys(destinationScore).reduce((a, b) =>
+                destinationScore[a] > destinationScore[b] ? a : b
+            );
+            quizDiv.innerHTML = "";
+            resultDiv.innerHTML = `
+    <div class="result-code">${finalCode}</div>
+    <p class="result-text">
+      Guárdalo.<br>
+      No sabrás nada hasta minutos antes del vuelo.
+    </p>`;
+        }
+
+        const observer = new MutationObserver(() => {
+            if (step === 15) showResult();
+        });
+        observer.observe(quizDiv, { childList: true });
+    </script>
+</body>
+
+</html>
